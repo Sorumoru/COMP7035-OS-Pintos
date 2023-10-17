@@ -113,6 +113,8 @@ struct thread
    Controlled by kernel command-line option "-o mlfqs". */
 extern bool thread_mlfqs;
 
+void thread_sleep(int64_t ticks); /* added for function prototyping -Jun */
+
 void thread_init(void);
 void thread_start(void);
 

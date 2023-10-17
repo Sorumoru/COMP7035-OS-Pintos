@@ -112,6 +112,7 @@ static struct list sleeping_threads; /* List of sleeping thread elements to be a
 
 void thread_sleep(int64_t wakeup_ticks)
 {
+  printf("thread_sleep()\n");
   ASSERT(intr_get_level() == INTR_ON);
 
   struct thread *current_thread = thread_current();
@@ -128,7 +129,6 @@ void thread_sleep(int64_t wakeup_ticks)
   current_thread->wakeup_ticks = wakeup_ticks;
 
   /* Block the current thread. */
-  printf("wtf?\n");
   sema_down(&current_thread->sleep_sema);
 
   /* Enable interrupts again. */
@@ -137,7 +137,7 @@ void thread_sleep(int64_t wakeup_ticks)
 
 void timer_sleep(int64_t ticks)
 {
-  printf("wtf start?!\n");
+  printf("timer_sleep()\n");
   int64_t start = timer_ticks();
 
   ASSERT(intr_get_level() == INTR_ON);
@@ -222,26 +222,45 @@ void timer_print_stats(void)
 static void
 timer_interrupt(struct intr_frame *args UNUSED)
 {
+  printf("timer_interrupt()\n");
   ticks++;
   thread_tick();
 
   // Check the list of sleeping threads.
-  // struct list_elem *e;
-  // for (e = list_begin(&sleeping_threads); e != list_end(&sleeping_threads);)
-  // {
-  //   struct thread *t = list_entry(e, struct thread, sleep_elem);
-  //   printf(" <= %lld\n", ticks);
+  struct list_elem *e;
 
-  //   if (t->wakeup_ticks <= ticks)
-  //   {
-  //     e = list_remove(e);      // Remove from the list.
-  //     sema_up(&t->sleep_sema); // Wake up the thread.
-  //   }
-  //   else
-  //   {
-  //     e = list_next(e);
-  //   }
-  // }
+  printf("sleeping threads empty? %s\n", list_empty(&sleeping_threads) ? "true" : "false");
+  if (list_empty(&sleeping_threads))
+    return; // the list is empty, no threads to wake up.
+
+  for (e = list_begin(&sleeping_threads); e != list_end(&sleeping_threads); e = list_next(e))
+  {
+    printf("test checking list");
+    struct thread *t = list_entry(e, struct thread, sleep_elem);
+    if (t != NULL)
+    {
+      printf("Thread with wakeup_ticks: %" PRId64 "\n", t->wakeup_ticks);
+    }
+    else
+    {
+      printf("t is null!\n");
+    }
+  }
+  for (e = list_begin(&sleeping_threads); e != list_end(&sleeping_threads);)
+  {
+    struct thread *t = list_entry(e, struct thread, sleep_elem);
+    printf(" <= %lld\n", ticks);
+
+    if (t->wakeup_ticks <= ticks)
+    {
+      e = list_remove(e);      // Remove from the list.
+      sema_up(&t->sleep_sema); // Wake up the thread.
+    }
+    else
+    {
+      e = list_next(e);
+    }
+  }
 }
 
 /* Returns true if LOOPS iterations waits for more than one timer

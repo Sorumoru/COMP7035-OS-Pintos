@@ -547,8 +547,6 @@ schedule(void)
   ASSERT(cur->status != THREAD_RUNNING);
   ASSERT(is_thread(next));
 
-  // wake_up_sleeping_threads();
-
   if (cur != next)
     prev = switch_threads(cur, next);
   thread_schedule_tail(prev);
@@ -588,71 +586,18 @@ void put_thread_to_sleep(int64_t wakeup_ticks)
   // Disable interrupts while modifying the sleeping list.
   enum intr_level old_level = intr_disable();
 
-  // Insert the thread into the list of sleeping threads.
-  // list_insert_ordered(&sleeping_threads, &current_thread->elem, compare_wakeup_ticks, NULL);
-  // if (current_thread != idle_thread)
-  // {
-
-  // }
-  // Add the sleeping thread to the list.
-  // current_thread->status = THREAD_SLEEPING;
-  // ASSERT(!intr_context());
-  // ASSERT(intr_get_level() == INTR_OFF);
-
-  // thread_current()->status = THREAD_SLEEPING;
-
   current_thread->wakeup_ticks = wakeup_ticks;
-  // list_remove(&current_thread->elem);
   list_push_back(&sleeping_threads, &current_thread->sleep_elem);
 
   // sema_down(&current_thread->sleep_sema);
   thread_sleep();
 
-  // Block the current thread.
-
   // Enable interrupts again.
   intr_set_level(old_level);
 }
 
-// void wake_up_sleeping_threads(int64_t ticks)
-// // void wake_up_sleeping_threads(void)
-// {
-//   struct list_elem *e;
-
-//   for (e = list_begin(&all_list); e != list_end(&all_list); e = list_next(e))
-//   {
-//     struct thread *t = list_entry(e, struct thread, allelem);
-
-//     if (t->status == THREAD_SLEEPING && t->wakeup_ticks <= ticks)
-//     {
-//       t->wakeup_ticks = INT64_MAX;
-//       // thread_unblock(t);
-//       thread_unsleep(t);
-//     }
-//   }
-// }
-
 void wake_up_sleeping_threads(int64_t current_ticks)
 {
-  // struct list_elem *e = list_begin(&sleeping_threads);
-
-  // while (e != list_end(&sleeping_threads))
-  // {
-  //   printf("wtf mane\n");
-  //   struct thread *t = list_entry(e, struct thread, elem);
-  //   // printf("wakeup_ticks: %lld\n", t->wakeup_ticks);
-  //   if (current_ticks >= t->wakeup_ticks && t->status == THREAD_SLEEPING)
-  //   {
-  //     list_remove(e); // Remove this thread from sleeping_threads list
-  //     thread_unsleep(t);
-  //     t->wakeup_ticks = INT64_MAX;
-  //     // sema_up(&t->sleep_sema);
-  //   }
-  //   else
-  //   {
-  //     list_next(e);
-  //   }
-  // }
   struct list_elem *e;
   for (e = list_begin(&sleeping_threads); e != list_end(&sleeping_threads); e = list_next(e))
   {

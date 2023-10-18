@@ -82,84 +82,15 @@ timer_elapsed(int64_t then)
   return timer_ticks() - then;
 }
 
-/* Sleeps for approximately TICKS timer ticks.  Interrupts must
-   be turned on. */
-// void
-// timer_sleep (int64_t ticks)
-// {
-//   int64_t start = timer_ticks ();
-
-//   ASSERT (intr_get_level () == INTR_ON);
-//   while (timer_elapsed (start) < ticks)
-//     thread_yield ();
-// }
-
-/* Jun timer_sleep implementation */
-// define a semaphore to implement the timer sleep
-// static struct semaphore sleep_sema;
-
-// compare function for the priority queue
-// static bool compare_priority(const struct list_elem *a, const struct list_elem *b, void *aux)
-// {
-//   return list_entry(a, struct thread, elem)->priority > list_entry(b, struct thread, elem)->priority;
-// }
-
-// static struct list sleeping_threads; /* List of sleeping thread elements to be awakened by timer_interrupt() -Jun */
-
-// void compare_wakeup_ticks()
-// {
-// }
-
-// void thread_sleep(int64_t wakeup_ticks)
-// {
-//   printf("thread_sleep()\n");
-//   ASSERT(intr_get_level() == INTR_ON);
-
-//   struct thread *current_thread = thread_current();
-
-//   /* Disable interrupts while modifying the sleeping list. */
-//   enum intr_level old_level = intr_disable();
-
-//   /* Insert the thread into the list of sleeping threads. */
-//   // list_insert_ordered(&sleeping_threads, &current_thread->elem, compare_wakeup_ticks, NULL);
-
-//   // Add the sleeping thread to the list.
-//   list_push_back(&sleeping_threads, &current_thread->sleep_elem);
-
-//   current_thread->wakeup_ticks = wakeup_ticks;
-
-//   /* Block the current thread. */
-//   sema_down(&current_thread->sleep_sema);
-
-//   /* Enable interrupts again. */
-//   intr_set_level(old_level);
-// }
-
+/* TODO: comments */
 void timer_sleep(int64_t ticks)
 {
   if (ticks <= 0)
     return;
-  // // printf("timer_sleep()\n");
+
   int64_t start = timer_ticks();
 
-  // ASSERT(intr_get_level() == INTR_ON);
-
-  // enum intr_level old_level = intr_disable();
-
-  // struct thread *current_thread = thread_current();
-  // current_thread->wakeup_ticks = start + ticks; // Set the time when the thread should wake up.
-
-  // // list_push_back(&sleeping_threads, &current_thread->sleep_elem); // Add the thread to the sleeping threads list.
-  // thread_block(); // Block the current thread.
-
-  // intr_set_level(old_level);
-
   put_thread_to_sleep(start + ticks);
-
-  // while (timer_elapsed(start) < ticks)
-  //   thread_yield();
-  // if (timer_elapsed(start) < ticks)
-  //   thread_sleep(start + ticks);
 }
 
 /* Sleeps for approximately MS milliseconds.  Interrupts must be

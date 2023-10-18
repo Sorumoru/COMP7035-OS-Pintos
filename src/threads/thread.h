@@ -94,7 +94,7 @@ struct thread
   struct list_elem allelem;  /* List element for all threads list. */
 
   int64_t wakeup_ticks;        /* Tick till wake up -Jun */
-  struct semaphore sleep_sema; /* Sleep semaphore for timer_sleep and timer_interrupt -Jun */
+  struct semaphore sleep_sema; /* Sleep semaphore for timer_sleep and timer_interrupt, no implementation yet :( -Jun */
   struct list_elem sleep_elem; /* List of sleeping threads -Jun */
 
   /* Shared between thread.c and synch.c. */

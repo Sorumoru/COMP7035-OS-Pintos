@@ -21,7 +21,7 @@
    of thread.h for details. */
 #define THREAD_MAGIC 0xcd6abf4b
 
-static struct list sleeping_threads; /* List of sleeping thread elements to be awakened by wake_up_sleeping_threads -Jun */
+static struct list sleepy_list; /* List of sleeping thread elements to be awakened by wake_up_sleeping_threads -Jun */
 
 /* List of processes in THREAD_READY state, that is, processes
    that are ready to run but not actually running. */
@@ -94,7 +94,7 @@ void thread_init(void)
   lock_init(&tid_lock);
   list_init(&ready_list);
   list_init(&all_list);
-  list_init(&sleeping_threads);
+  list_init(&sleepy_list);
 
   /* Set up a thread structure for the running thread. */
   initial_thread = running_thread();
@@ -552,6 +552,8 @@ schedule(void)
   thread_schedule_tail(prev);
 }
 
+/* Almost exactly the same as thread_block(), only difference
+   being we change the current thread's status to THREAD_SLEEPING. */
 void thread_sleep()
 {
   ASSERT(!intr_context());
@@ -561,6 +563,8 @@ void thread_sleep()
   schedule();
 }
 
+/* Almost exactly the same as thread_unblock(), only difference
+   being we check if the thread's status is THREAD_SLEEPING. */
 void thread_unsleep(struct thread *t)
 {
   enum intr_level old_level;
@@ -575,7 +579,7 @@ void thread_unsleep(struct thread *t)
   intr_set_level(old_level);
 }
 
-/* thread_sleep for timer_sleep function in timer.c -Jun */
+/* Thread_sleep for timer_sleep function in timer.c -Jun */
 void put_thread_to_sleep(int64_t wakeup_ticks)
 {
   // printf("thread_sleep()\n");
@@ -587,7 +591,7 @@ void put_thread_to_sleep(int64_t wakeup_ticks)
   enum intr_level old_level = intr_disable();
 
   current_thread->wakeup_ticks = wakeup_ticks;
-  list_push_back(&sleeping_threads, &current_thread->sleep_elem);
+  list_push_back(&sleepy_list, &current_thread->sleep_elem);
 
   // sema_down(&current_thread->sleep_sema);
   thread_sleep();
@@ -596,10 +600,11 @@ void put_thread_to_sleep(int64_t wakeup_ticks)
   intr_set_level(old_level);
 }
 
+/* Wakes up all the sleeping threads in the sleeping threads list, sleepy_list. */
 void wake_up_sleeping_threads(int64_t current_ticks)
 {
   struct list_elem *e;
-  for (e = list_begin(&sleeping_threads); e != list_end(&sleeping_threads); e = list_next(e))
+  for (e = list_begin(&sleepy_list); e != list_end(&sleepy_list); e = list_next(e))
   {
     struct thread *t = list_entry(e, struct thread, sleep_elem);
     if (t->status == THREAD_SLEEPING && t->wakeup_ticks <= current_ticks)

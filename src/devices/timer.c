@@ -82,7 +82,8 @@ timer_elapsed(int64_t then)
   return timer_ticks() - then;
 }
 
-/* TODO: comments */
+/* SLeeps for approximately TICKS timer ticks. Interrups must
+   be turned on */
 void timer_sleep(int64_t ticks)
 {
   if (ticks <= 0)
@@ -156,15 +157,7 @@ void timer_print_stats(void)
   printf("Timer: %" PRId64 " ticks\n", timer_ticks());
 }
 
-/* Timer interrupt handler. */
-// static void
-// timer_interrupt(struct intr_frame *args UNUSED)
-// {
-//   ticks++;
-//   thread_tick();
-// }
-
-/* Jun timer_interrupt implementation */
+/* timer_interrupt implementation */
 static void
 timer_interrupt(struct intr_frame *args UNUSED)
 {
@@ -172,41 +165,6 @@ timer_interrupt(struct intr_frame *args UNUSED)
   ticks++;
   wake_up_sleeping_threads(ticks);
   thread_tick();
-  // Check the list of sleeping threads.
-  // struct list_elem *e;
-
-  // printf("sleeping threads empty? %s\n", list_empty(&sleeping_threads) ? "true" : "false");
-  // if (list_empty(&sleeping_threads))
-  //   return; // the list is empty, no threads to wake up.
-
-  // for (e = list_begin(&sleeping_threads); e != list_end(&sleeping_threads); e = list_next(e))
-  // {
-  //   printf("test checking list");
-  //   struct thread *t = list_entry(e, struct thread, sleep_elem);
-  //   if (t != NULL)
-  //   {
-  //     printf("Thread with wakeup_ticks: %" PRId64 "\n", t->wakeup_ticks);
-  //   }
-  //   else
-  //   {
-  //     printf("t is null!\n");
-  //   }
-  // }
-  // for (e = list_begin(&sleeping_threads); e != list_end(&sleeping_threads);)
-  // {
-  //   struct thread *t = list_entry(e, struct thread, sleep_elem);
-  //   printf(" <= %lld\n", ticks);
-
-  //   if (t->wakeup_ticks <= ticks)
-  //   {
-  //     e = list_remove(e);      // Remove from the list.
-  //     sema_up(&t->sleep_sema); // Wake up the thread.
-  //   }
-  //   else
-  //   {
-  //     e = list_next(e);
-  //   }
-  // }
 }
 
 /* Returns true if LOOPS iterations waits for more than one timer

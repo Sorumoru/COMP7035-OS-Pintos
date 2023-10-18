@@ -11,6 +11,7 @@
 #include "threads/switch.h"
 #include "threads/synch.h"
 #include "threads/vaddr.h"
+#include "devices/timer.h" /* added this for timer_ticks() -Jun */
 #ifdef USERPROG
 #include "userprog/process.h"
 #endif
@@ -19,6 +20,8 @@
    Used to detect stack overflow.  See the big comment at the top
    of thread.h for details. */
 #define THREAD_MAGIC 0xcd6abf4b
+
+static struct list sleeping_threads; /* List of sleeping thread elements to be awakened by timer_interrupt() -Jun */
 
 /* List of processes in THREAD_READY state, that is, processes
    that are ready to run but not actually running. */
@@ -91,6 +94,7 @@ void thread_init(void)
   lock_init(&tid_lock);
   list_init(&ready_list);
   list_init(&all_list);
+  list_init(&sleeping_threads);
 
   /* Set up a thread structure for the running thread. */
   initial_thread = running_thread();
@@ -534,6 +538,7 @@ void thread_schedule_tail(struct thread *prev)
 static void
 schedule(void)
 {
+  // printf("schedule()\n");
   struct thread *cur = running_thread();
   struct thread *next = next_thread_to_run();
   struct thread *prev = NULL;
@@ -542,10 +547,100 @@ schedule(void)
   ASSERT(cur->status != THREAD_RUNNING);
   ASSERT(is_thread(next));
 
+  // wake_up_sleeping_threads();
+
   if (cur != next)
     prev = switch_threads(cur, next);
   thread_schedule_tail(prev);
 }
+
+/* thread_sleep for timer_sleep function in timer.c -Jun */
+void thread_sleep(int64_t wakeup_ticks)
+{
+  // printf("thread_sleep()\n");
+  ASSERT(intr_get_level() == INTR_ON);
+
+  struct thread *current_thread = thread_current();
+
+  // Disable interrupts while modifying the sleeping list.
+  enum intr_level old_level = intr_disable();
+
+  // Insert the thread into the list of sleeping threads.
+  // list_insert_ordered(&sleeping_threads, &current_thread->elem, compare_wakeup_ticks, NULL);
+  // if (current_thread != idle_thread)
+  // {
+
+  // }
+  // Add the sleeping thread to the list.
+  // current_thread->status = THREAD_SLEEPING;
+  ASSERT(!intr_context());
+  ASSERT(intr_get_level() == INTR_OFF);
+
+  thread_current()->status = THREAD_SLEEPING;
+
+  current_thread->wakeup_ticks = wakeup_ticks;
+  list_remove(&current_thread->elem);
+  list_push_back(&sleeping_threads, &current_thread->elem);
+
+  // schedule();
+
+  // Block the current thread.
+  sema_down(&current_thread->sleep_sema);
+
+  // Enable interrupts again.
+  intr_set_level(old_level);
+}
+
+void thread_unsleep(struct thread *t)
+{
+  enum intr_level old_level;
+
+  ASSERT(is_thread(t));
+
+  old_level = intr_disable();
+  ASSERT(t->status == THREAD_SLEEPING);
+  list_push_back(&ready_list, &t->elem);
+  t->status = THREAD_READY;
+  intr_set_level(old_level);
+}
+void wake_up_sleeping_threads(int64_t ticks)
+// void wake_up_sleeping_threads(void)
+{
+  struct list_elem *e;
+
+  for (e = list_begin(&all_list); e != list_end(&all_list); e = list_next(e))
+  {
+    struct thread *t = list_entry(e, struct thread, allelem);
+
+    if (t->status == THREAD_BLOCKED && t->wakeup_ticks <= ticks)
+    {
+      t->wakeup_ticks = INT64_MAX;
+      thread_unblock(t);
+    }
+  }
+}
+
+// void wake_up_sleeping_threads(int64_t current_ticks)
+// {
+//   struct list_elem *e = list_begin(&sleeping_threads);
+
+//   while (e != list_end(&sleeping_threads))
+//   {
+//     struct thread *t = list_entry(e, struct thread, elem);
+//     // printf("wakeup_ticks: %lld\n", t->wakeup_ticks);
+//     if (current_ticks >= t->wakeup_ticks && t->status == THREAD_SLEEPING)
+//     {
+//       thread_unsleep(t);
+//       // t->wakeup_ticks = INT64_MAX;
+//       sema_up(&t->sleep_sema);
+//       list_remove(e); // Remove this thread from sleeping_threads list
+//     }
+//     else
+//     {
+//       list_next(e);
+//     }
+//   }
+// }
 
 /* Returns a tid to use for a new thread. */
 static tid_t

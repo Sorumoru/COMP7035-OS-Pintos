@@ -13,7 +13,8 @@ enum thread_status
   THREAD_RUNNING, /* Running thread. */
   THREAD_READY,   /* Not running but ready to run. */
   THREAD_BLOCKED, /* Waiting for an event to trigger. */
-  THREAD_DYING    /* About to be destroyed. */
+  THREAD_DYING,   /* About to be destroyed. */
+  THREAD_SLEEPING
 };
 
 /* Thread identifier type.
@@ -114,6 +115,9 @@ struct thread
 extern bool thread_mlfqs;
 
 void thread_sleep(int64_t ticks); /* added for function prototyping -Jun */
+// void wake_up_sleeping_threads(void);
+void wake_up_sleeping_threads(int64_t);
+void thread_unsleep(struct thread *t);
 
 void thread_init(void);
 void thread_start(void);

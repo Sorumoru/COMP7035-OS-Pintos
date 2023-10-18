@@ -1,0 +1,64 @@
+
+ 	
+                         +-----------------+
+                         |    COMP 7035    |  
+                         |   Assignment 1  |
+			 |      Part 2     |
+                         | DESIGN DOCUMENT |
+                         +-----------------+
+
+---- GROUP ----
+
+Jun Solomon- A01255600
+Faiz Hassany- A01233039
+Lukasz Bednarek - A01206494
+Joeseph Harris - A01252621
+
+
+---- PRELIMINARIES ----
+
+>> If you have any preliminary comments on your submission, notes for
+>> the TAs, or extra credit, please give them here.
+
+< Write here >
+
+>> Please cite any offline or online sources you consulted while
+>> preparing your submission, other than the Pintos documentation,
+>> course text, and lecture notes.
+
+* Design document template: https://www.scs.stanford.edu/23wi-cs212/pintos/pintos_9.html
+
+                                 JOIN
+                                 ====
+
+---- DATA STRUCTURES ----
+
+>> Copy here the declaration of each new or changed `struct' or `struct'
+>> member, global or static variable, `typedef', or enumeration.
+>> Identify the purpose of each in 25 words or less.
+
+```code snippet(s) go here```
+
+---- ALGORITHMS ----
+
+>> Briefly describe your implementation of thread_join() and how it
+>> interacts with thread termination.
+
+```code snippet(s) go here```
+
+---- SYNCHRONIZATION ----
+
+>> Consider parent thread P with child thread C.  How do you ensure
+>> proper synchronization and avoid race conditions when P calls wait(C)
+>> before C exits?  After C exits?  How do you ensure that all resources
+>> are freed in each case?  How about when P terminates without waiting,
+>> before C exits?  After C exits?  Are there any special cases?
+
+< Write here >
+
+---- RATIONALE ----
+
+>> Critique your design, pointing out advantages and disadvantages in
+>> your design choices.
+
+< Write here >

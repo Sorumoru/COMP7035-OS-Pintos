@@ -1,5 +1,3 @@
-
- 	
                          +-----------------+
                          |    COMP 7035    |  
                          |   Assignment 1  |
@@ -14,28 +12,11 @@ Faiz Hassany- A01233039
 Lukasz Bednarek - A01206494
 Joseph Harris - A01252621
 
-
 ---- PRELIMINARIES ----
 
->> If you have any preliminary comments on your submission, notes for
->> the TAs, or extra credit, please give them here.
-
-< Write here >
-
->> Please cite any offline or online sources you consulted while
->> preparing your submission, other than the Pintos documentation,
->> course text, and lecture notes.
-
-* Design document template: https://www.scs.stanford.edu/23wi-cs212/pintos/pintos_9.html
-
-                                 JOIN
-                                 ====
+None.
 
 ---- DATA STRUCTURES ----
-
->> Copy here the declaration of each new or changed `struct' or `struct'
->> member, global or static variable, `typedef', or enumeration.
->> Identify the purpose of each in 25 words or less.
 
 - NEW DATA STRUCTURES -
 <thread.h>
@@ -46,7 +27,7 @@ Added following
 
 <thread.c>
 Added struct to hold list of sleeping threads
-    static struct list sleeping_threads; /* List of sleeping thread elements to be awakened by wake_up_sleeping_threads */
+    static struct list sleepy_list; /* List of sleeping thread elements to be awakened by wake_up_sleeping_threads */
 
 - MODIFIED DATA STRUCTURES -
 <thread.n>
@@ -55,24 +36,33 @@ Added to thread_status enum
 
 ---- ALGORITHMS ----
 
->> Briefly describe your implementation of thread_join() and how it
->> interacts with thread termination.
+void timer_sleep(int64_t ticks)
+{
+  if (ticks <= 0)
+    return;
 
-```code snippet(s) go here```
+  int64_t start = timer_ticks();
 
----- SYNCHRONIZATION ----
+  put_thread_to_sleep(start + ticks);
+}
 
->> Consider parent thread P with child thread C.  How do you ensure
->> proper synchronization and avoid race conditions when P calls wait(C)
->> before C exits?  After C exits?  How do you ensure that all resources
->> are freed in each case?  How about when P terminates without waiting,
->> before C exits?  After C exits?  Are there any special cases?
+Puts threads to sleep for the number of ticks passed to it if current tick amount is greater than zero. Does this by calling a method that runs a few tests and then calls thread sleep.
 
-< Write here >
 
 ---- RATIONALE ----
 
->> Critique your design, pointing out advantages and disadvantages in
->> your design choices.
+Advantages:
 
-< Write here >
+1. Reduced Busy Waiting: This redesign eliminates busy waiting in `timer_sleep()`. Previously, the function was spinning in a loop, checking the current time and calling `thread_yield()` until enough time had passed. This approach, using the `sleeping_threads` list and `thread_sleep()`, ensures that a sleeping thread does not consume CPU time while waiting.
+
+2. Modularity: The code is becoming more modular with the addition of functions like `thread_sleep()`, `thread_unsleep()`, `put_thread_to_sleep()`, and `wake_up_sleeping_threads()`. This modularity can improve code readability and maintenance.
+
+3. Scalability: This design allows for the efficient management of multiple sleeping threads. With `sleeping_threads`, it's easier to keep track of threads that are in a sleeping state, ensuring they wake up at the appropriate time.
+
+Potential Disadvantages:
+
+1. Complexity: While the code is becoming more modular, it's also becoming more complex. The introduction of new functions and data structures like `sleeping_threads` may increase the complexity of the code, potentially making it more challenging to debug and maintain.
+
+2. Synchronization: Proper synchronization is crucial in a multi-threaded environment. You need to ensure that your modifications do not introduce new synchronization issues or race conditions. The `INTR_OFF` assertion and calls to `intr_disable()` and `intr_set_level()` should help with this.
+
+3. Testing: With these changes, comprehensive testing is necessary to ensure the code operates correctly. In particular, ensure that threads are woken up at the right times and that there are no unexpected delays or premature wake-ups.

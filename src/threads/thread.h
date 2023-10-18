@@ -115,9 +115,8 @@ struct thread
 extern bool thread_mlfqs;
 
 void put_thread_to_sleep(int64_t ticks); /* added for function prototyping -Jun */
-// void wake_up_sleeping_threads(void);
 void thread_sleep(void);
-// void wake_up_sleeping_threads(int64_t);
+void wake_up_sleeping_threads(int64_t);
 void thread_unsleep(struct thread *t);
 
 void thread_init(void);

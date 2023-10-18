@@ -21,7 +21,7 @@
    of thread.h for details. */
 #define THREAD_MAGIC 0xcd6abf4b
 
-static struct list sleeping_threads; /* List of sleeping thread elements to be awakened by timer_interrupt() -Jun */
+static struct list sleeping_threads; /* List of sleeping thread elements to be awakened by wake_up_sleeping_threads -Jun */
 
 /* List of processes in THREAD_READY state, that is, processes
    that are ready to run but not actually running. */

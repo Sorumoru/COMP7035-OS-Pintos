@@ -142,19 +142,19 @@ void timer_sleep(int64_t ticks)
   // // printf("timer_sleep()\n");
   int64_t start = timer_ticks();
 
-  ASSERT(intr_get_level() == INTR_ON);
+  // ASSERT(intr_get_level() == INTR_ON);
 
-  enum intr_level old_level = intr_disable();
+  // enum intr_level old_level = intr_disable();
 
-  struct thread *current_thread = thread_current();
-  current_thread->wakeup_ticks = start + ticks; // Set the time when the thread should wake up.
+  // struct thread *current_thread = thread_current();
+  // current_thread->wakeup_ticks = start + ticks; // Set the time when the thread should wake up.
 
-  // list_push_back(&sleeping_threads, &current_thread->sleep_elem); // Add the thread to the sleeping threads list.
-  thread_block(); // Block the current thread.
+  // // list_push_back(&sleeping_threads, &current_thread->sleep_elem); // Add the thread to the sleeping threads list.
+  // thread_block(); // Block the current thread.
 
-  intr_set_level(old_level);
+  // intr_set_level(old_level);
 
-  // thread_sleep(start + ticks);
+  put_thread_to_sleep(start + ticks);
 
   // while (timer_elapsed(start) < ticks)
   //   thread_yield();

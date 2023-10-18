@@ -3,7 +3,7 @@
                          +-----------------+
                          |    COMP 7035    |  
                          |   Assignment 1  |
-			 |      Part 2     |
+                         |      Part 2     |
                          | DESIGN DOCUMENT |
                          +-----------------+
 
@@ -37,7 +37,21 @@ Joseph Harris - A01252621
 >> member, global or static variable, `typedef', or enumeration.
 >> Identify the purpose of each in 25 words or less.
 
-```code snippet(s) go here```
+- NEW DATA STRUCTURES -
+<thread.h>
+Added following
+    int64_t wakeup_ticks;        /* Tick till wake up */
+    struct semaphore sleep_sema; /* Sleep semaphore for timer_sleep and timer_interrupt, not implementation yet */
+    struct list_elem sleep_elem; /* List of sleeping threads */
+
+<thread.c>
+Added struct to hold list of sleeping threads
+    static struct list sleeping_threads; /* List of sleeping thread elements to be awakened by wake_up_sleeping_threads */
+
+- MODIFIED DATA STRUCTURES -
+<thread.n>
+Added to thread_status enum
+    THREAD_SLEEPING /* A thread state signifying suspended execution */
 
 ---- ALGORITHMS ----
 

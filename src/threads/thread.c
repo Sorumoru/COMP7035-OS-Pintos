@@ -11,7 +11,8 @@
 #include "threads/switch.h"
 #include "threads/synch.h"
 #include "threads/vaddr.h"
-#include "devices/timer.h" /* added this for timer_ticks() -Jun */
+#include "devices/timer.h" /* Added this for timer_ticks() -Jun */
+#include "fixed-point.h"   /* Added for arithmetic calculations -Jun */
 #ifdef USERPROG
 #include "userprog/process.h"
 #endif
@@ -341,10 +342,10 @@ void thread_set_nice(int new_nice)
 {
   /* Luke's implementation. */
   thread_current()->nice = new_nice;
-  //int nice = thread_current()->niceness;
-  //int recent_cpu = thread_get_recent_cpu();
+  // int nice = thread_current()->niceness;
+  // int recent_cpu = thread_get_recent_cpu();
 
-  //int priority = PRI_MAX - (recent_cpu / 4) - (new_nice * 2);
+  // int priority = PRI_MAX - (recent_cpu / 4) - (new_nice * 2);
 }
 
 /* Returns the current thread's nice value. */
@@ -364,8 +365,26 @@ int thread_get_load_avg(void)
 /* Returns 100 times the current thread's recent_cpu value. */
 int thread_get_recent_cpu(void)
 {
-  /* Not yet implemented. */
-  return 0;
+  int recent_cpu = thread_current()->recent_cpu;
+  int load_avg = thread_current()->load_avg;
+
+  fixed_point_t recent_cpu_fp = int_to_fp(recent_cpu);
+  fixed_point_t load_avg_fp = int_to_fp(load_avg);
+
+  /**
+   * recent_cpu = (2 * load_avg) / (2 * load_avg + 1) * recent_cpu + nice
+   * decay = (2 * load_avg) / (2 * load_avg + 1)
+   * */
+
+  fixed_point_t decay_dividend = fp_multiply(int_to_fp(2), load_avg_fp);
+  fixed_point_t decay_divisor = fp_add(fp_multiply(int_to_fp(2), load_avg_fp), 1);
+  fixed_point_t decay = fp_divide(decay_dividend, decay_divisor);
+
+  fixed_point_t nice_fp = int_to_fp(thread_get_nice());
+  fixed_point_t calculated_recent_cpu_fp = fp_add(fp_multiply(decay, recent_cpu_fp), nice_fp);
+  int calculated_recent_cpu = fp_to_int_round_nearest(calculated_recent_cpu_fp);
+
+  return calculated_recent_cpu;
 }
 
 /* Idle thread.  Executes when no other thread is ready to run.

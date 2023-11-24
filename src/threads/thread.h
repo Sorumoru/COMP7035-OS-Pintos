@@ -99,6 +99,7 @@ struct thread
   /* A2 added props -Luke */
   int nice;       /* Represents the willingness of a thread to give up CPU time -Luke */
   int recent_cpu; /* Represents how much of the CPU cycles the process has been using -Jun */
+  int load_avg;
 
   // struct semaphore sleep_sema; /* Sleep semaphore for timer_sleep and timer_interrupt, no implementation yet :( -Jun */
   int64_t wakeup_ticks;        /* Tick till wake up -Jun */

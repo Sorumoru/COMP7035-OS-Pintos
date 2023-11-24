@@ -96,7 +96,7 @@ struct thread
   int priority;              /* Priority. */
   struct list_elem allelem;  /* List element for all threads list. */
   /* A2 added props -Luke */
-  int niceness; /* Represents the willingness of a thread to give up CPU time - Luke */
+  int nice; /* Represents the willingness of a thread to give up CPU time - Luke */
 
   // struct semaphore sleep_sema; /* Sleep semaphore for timer_sleep and timer_interrupt, no implementation yet :( -Jun */
   int64_t wakeup_ticks;        /* Tick till wake up -Jun */

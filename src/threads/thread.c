@@ -340,7 +340,7 @@ int thread_get_priority(void)
 void thread_set_nice(int new_nice)
 {
   /* Luke's implementation. */
-  thread_current()->niceness = new_nice;
+  thread_current()->nice = new_nice;
   //int nice = thread_current()->niceness;
   //int recent_cpu = thread_get_recent_cpu();
 
@@ -351,7 +351,7 @@ void thread_set_nice(int new_nice)
 int thread_get_nice(void)
 {
   /* Luke's implementation. */
-  return thread_current()->niceness;
+  return thread_current()->nice;
 }
 
 /* Returns 100 times the system load average. */
@@ -456,7 +456,7 @@ init_thread(struct thread *t, const char *name, int priority)
   t->priority = priority;
   t->magic = THREAD_MAGIC;
   /* A2 additions - Luke */
-  t->niceness = NICENESS_DEFAULT;
+  t->nice = NICENESS_DEFAULT;
 
   old_level = intr_disable();
   list_push_back(&all_list, &t->allelem);

@@ -97,7 +97,7 @@ struct thread
   struct list_elem allelem;  /* List element for all threads list. */
 
   /* A2 added props -Luke */
-  int niceness;   /* Represents the willingness of a thread to give up CPU time -Luke */
+  int nice;       /* Represents the willingness of a thread to give up CPU time -Luke */
   int recent_cpu; /* Represents how much of the CPU cycles the process has been using -Jun */
 
   // struct semaphore sleep_sema; /* Sleep semaphore for timer_sleep and timer_interrupt, no implementation yet :( -Jun */

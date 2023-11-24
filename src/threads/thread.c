@@ -1,4 +1,3 @@
-#include "threads/fixed-point.h"
 #include "threads/thread.h"
 #include <debug.h>
 #include <stddef.h>
@@ -366,7 +365,6 @@ int thread_get_load_avg(void)
 /* Returns 100 times the current thread's recent_cpu value. */
 int thread_get_recent_cpu(void)
 {
-<<<<<<< HEAD
   int recent_cpu = thread_current()->recent_cpu;
   int load_avg = thread_current()->load_avg;
 
@@ -387,10 +385,8 @@ int thread_get_recent_cpu(void)
   int calculated_recent_cpu = fp_to_int_round_nearest(calculated_recent_cpu_fp);
 
   return calculated_recent_cpu;
-=======
-  /* Luke's implementation */
-  return fp_multiply(thread_current()->recent_cpu, 100);
->>>>>>> b27825b52aabf3ce018fc797f47c70c2f9d5e796
+  // Luke's implementation
+  // return fp_multiply(thread_current()->recent_cpu, 100);
 }
 
 /* Idle thread.  Executes when no other thread is ready to run.

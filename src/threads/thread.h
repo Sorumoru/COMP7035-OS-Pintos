@@ -23,12 +23,12 @@ typedef int tid_t;
 #define TID_ERROR ((tid_t)-1) /* Error value for tid_t. */
 
 /* Thread priorities. */
-#define PRI_MIN 0      /* Lowest priority. */
-#define PRI_DEFAULT 31 /* Default priority. */
-#define PRI_MAX 63     /* Highest priority. */
-#define NICENESS_MIN -20 /* Lowest niceness */
+#define PRI_MIN 0          /* Lowest priority. */
+#define PRI_DEFAULT 31     /* Default priority. */
+#define PRI_MAX 63         /* Highest priority. */
+#define NICENESS_MIN -20   /* Lowest niceness */
 #define NICENESS_DEFAULT 0 /* Default niceness -Luke */
-#define NICENESS_MAX 20 /* Highest niceness */
+#define NICENESS_MAX 20    /* Highest niceness */
 
 /* A kernel thread or user process.
 
@@ -95,8 +95,11 @@ struct thread
   uint8_t *stack;            /* Saved stack pointer. */
   int priority;              /* Priority. */
   struct list_elem allelem;  /* List element for all threads list. */
+
   /* A2 added props -Luke */
-  int niceness; /* Represents the willingness of a thread to give up CPU time - Luke */
+  int nice;       /* Represents the willingness of a thread to give up CPU time -Luke */
+  int recent_cpu; /* Represents how much of the CPU cycles the process has been using -Jun */
+  int load_avg;
 
   // struct semaphore sleep_sema; /* Sleep semaphore for timer_sleep and timer_interrupt, no implementation yet :( -Jun */
   int64_t wakeup_ticks;        /* Tick till wake up -Jun */

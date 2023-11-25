@@ -11,7 +11,8 @@
 #include "threads/switch.h"
 #include "threads/synch.h"
 #include "threads/vaddr.h"
-#include "devices/timer.h" /* added this for timer_ticks() -Jun */
+#include "devices/timer.h" /* Added this for timer_ticks() -Jun */
+#include "fixed-point.h"   /* Added for arithmetic calculations -Jun */
 #ifdef USERPROG
 #include "userprog/process.h"
 #endif
@@ -67,7 +68,7 @@ static void kernel_thread(thread_func *, void *aux);
 static void idle(void *aux UNUSED);
 static struct thread *running_thread(void);
 static struct thread *next_thread_to_run(void);
-static void init_thread(struct thread *, const char *name, int priority, int niceness);
+static void init_thread(struct thread *, const char *name, int priority);
 static bool is_thread(struct thread *) UNUSED;
 static void *alloc_frame(struct thread *, size_t size);
 static void schedule(void);
@@ -98,7 +99,7 @@ void thread_init(void)
 
   /* Set up a thread structure for the running thread. */
   initial_thread = running_thread();
-  init_thread(initial_thread, "main", PRI_DEFAULT, NICENESS_DEFAULT);
+  init_thread(initial_thread, "main", PRI_DEFAULT);
   initial_thread->status = THREAD_RUNNING;
   initial_thread->tid = allocate_tid();
 }
@@ -110,7 +111,7 @@ void thread_start(void)
   /* Create the idle thread. */
   struct semaphore idle_started;
   sema_init(&idle_started, 0);
-  thread_create("idle", PRI_MIN, idle, &idle_started, NICENESS_DEFAULT);
+  thread_create("idle", PRI_MIN, idle, &idle_started);
 
   /* Start preemptive thread scheduling. */
   intr_enable();
@@ -163,7 +164,7 @@ void thread_print_stats(void)
    PRIORITY, but no actual priority scheduling is implemented.
    Priority scheduling is the goal of Problem 1-3. */
 tid_t thread_create(const char *name, int priority,
-                    thread_func *function, int niceness, void *aux)
+                    thread_func *function, void *aux)
 {
   struct thread *t;
   struct kernel_thread_frame *kf;
@@ -179,7 +180,7 @@ tid_t thread_create(const char *name, int priority,
     return TID_ERROR;
 
   /* Initialize thread. */
-  init_thread(t, name, priority, niceness);
+  init_thread(t, name, priority);
   tid = t->tid = allocate_tid();
 
   /* Stack frame for kernel_thread(). */
@@ -337,17 +338,21 @@ int thread_get_priority(void)
 }
 
 /* Sets the current thread's nice value to NICE. */
-void thread_set_nice(int nice)
+void thread_set_nice(int new_nice)
 {
   /* Luke's implementation. */
-  thread_current()->niceness = nice;
+  thread_current()->nice = new_nice;
+  // int nice = thread_current()->niceness;
+  // int recent_cpu = thread_get_recent_cpu();
+
+  // int priority = PRI_MAX - (recent_cpu / 4) - (new_nice * 2);
 }
 
 /* Returns the current thread's nice value. */
 int thread_get_nice(void)
 {
   /* Luke's implementation. */
-  return thread_current()->niceness;
+  return thread_current()->nice;
 }
 
 /* Returns 100 times the system load average. */
@@ -360,8 +365,28 @@ int thread_get_load_avg(void)
 /* Returns 100 times the current thread's recent_cpu value. */
 int thread_get_recent_cpu(void)
 {
-  /* Not yet implemented. */
-  return 0;
+  int recent_cpu = thread_current()->recent_cpu;
+  int load_avg = thread_current()->load_avg;
+
+  fixed_point_t recent_cpu_fp = int_to_fp(recent_cpu);
+  fixed_point_t load_avg_fp = int_to_fp(load_avg);
+
+  /**
+   * recent_cpu = (2 * load_avg) / (2 * load_avg + 1) * recent_cpu + nice
+   * decay = (2 * load_avg) / (2 * load_avg + 1)
+   * */
+
+  fixed_point_t decay_dividend = fp_multiply(int_to_fp(2), load_avg_fp);
+  fixed_point_t decay_divisor = fp_add(fp_multiply(int_to_fp(2), load_avg_fp), 1);
+  fixed_point_t decay = fp_divide(decay_dividend, decay_divisor);
+
+  fixed_point_t nice_fp = int_to_fp(thread_get_nice());
+  fixed_point_t calculated_recent_cpu_fp = fp_add(fp_multiply(decay, recent_cpu_fp), nice_fp);
+  int calculated_recent_cpu = fp_to_int_round_nearest(calculated_recent_cpu_fp);
+
+  return calculated_recent_cpu;
+  // Luke's implementation
+  // return fp_multiply(thread_current()->recent_cpu, 100);
 }
 
 /* Idle thread.  Executes when no other thread is ready to run.
@@ -437,7 +462,7 @@ is_thread(struct thread *t)
 /* Does basic initialization of T as a blocked thread named
    NAME. */
 static void
-init_thread(struct thread *t, const char *name, int priority, int niceness)
+init_thread(struct thread *t, const char *name, int priority)
 {
   enum intr_level old_level;
 
@@ -452,7 +477,7 @@ init_thread(struct thread *t, const char *name, int priority, int niceness)
   t->priority = priority;
   t->magic = THREAD_MAGIC;
   /* A2 additions - Luke */
-  t->niceness = niceness;
+  t->nice = NICENESS_DEFAULT;
 
   old_level = intr_disable();
   list_push_back(&all_list, &t->allelem);

@@ -159,5 +159,6 @@ int thread_get_recent_cpu(void);
 int thread_get_load_avg(void);
 /* A2 Additions */
 void thread_increment_recent_cpu(void);
+void threads_recalculate_recent_cpu(struct thread *t, void *aux);
 
 #endif /* threads/thread.h */

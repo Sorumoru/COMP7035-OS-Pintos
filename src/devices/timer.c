@@ -172,6 +172,8 @@ timer_interrupt(struct intr_frame *args UNUSED)
   {
     thread_increment_recent_cpu();
   }
+  /* Need to recalculate for every running thread except idle */
+  thread_foreach(threads_recalculate_recent_cpu, 0);
   
 }
 

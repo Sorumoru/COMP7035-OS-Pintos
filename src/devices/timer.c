@@ -7,6 +7,7 @@
 #include "threads/interrupt.h"
 #include "threads/synch.h"
 #include "threads/thread.h"
+#include "string.h" /* To compare strings -Luke */
 
 /* See [8254] for hardware details of the 8254 timer chip. */
 
@@ -167,8 +168,11 @@ timer_interrupt(struct intr_frame *args UNUSED)
   thread_tick();
   
   /* A2 Additions */
-  //if (!thread_current()->)
-  thread_increment_recent_cpu();
+  if (strcmp(thread_name(), "idle") != 0) // if names are not equal
+  {
+    thread_increment_recent_cpu();
+  }
+  
 }
 
 /* Returns true if LOOPS iterations waits for more than one timer

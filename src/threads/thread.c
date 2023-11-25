@@ -375,7 +375,7 @@ int thread_get_recent_cpu(void)
    * recent_cpu = (2 * load_avg) / (2 * load_avg + 1) * recent_cpu + nice
    * decay = (2 * load_avg) / (2 * load_avg + 1)
    * */
-
+  
   fixed_point_t decay_dividend = fp_multiply(int_to_fp(2), load_avg_fp);
   fixed_point_t decay_divisor = fp_add(fp_multiply(int_to_fp(2), load_avg_fp), 1);
   fixed_point_t decay = fp_divide(decay_dividend, decay_divisor);
@@ -383,10 +383,17 @@ int thread_get_recent_cpu(void)
   fixed_point_t nice_fp = int_to_fp(thread_get_nice());
   fixed_point_t calculated_recent_cpu_fp = fp_add(fp_multiply(decay, recent_cpu_fp), nice_fp);
   int calculated_recent_cpu = fp_to_int_round_nearest(calculated_recent_cpu_fp);
+  
 
-  return calculated_recent_cpu;
+  //return calculated_recent_cpu;
   // Luke's implementation
-  // return fp_multiply(thread_current()->recent_cpu, 100);
+  // fixed_point_t product = fp_multiply(thread_current()->recent_cpu, 100);
+  // return fp_to_int_round_nearest(product);
+}
+
+void thread_increment_recent_cpu(void)
+{
+  thread_current()->recent_cpu = thread_get_recent_cpu() + 1;
 }
 
 /* Idle thread.  Executes when no other thread is ready to run.

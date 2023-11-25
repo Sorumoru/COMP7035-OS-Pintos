@@ -165,6 +165,10 @@ timer_interrupt(struct intr_frame *args UNUSED)
   ticks++;
   wake_up_sleeping_threads(ticks);
   thread_tick();
+  
+  /* A2 Additions */
+  //if (!thread_current()->)
+  thread_increment_recent_cpu();
 }
 
 /* Returns true if LOOPS iterations waits for more than one timer

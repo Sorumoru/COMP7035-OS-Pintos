@@ -397,7 +397,7 @@ void thread_increment_recent_cpu(void)
   thread_current()->recent_cpu = thread_get_recent_cpu() + 1;
 }
 
-void threads_recalculate_recent_cpu(struct thread *t, void *aux UNUSED) 
+void thread_update_recent_cpu(struct thread *t, void *aux UNUSED) 
 {
   if (strcmp(thread_name(), "idle") != 0) // if names are not equal
   {
@@ -412,7 +412,6 @@ void threads_recalculate_recent_cpu(struct thread *t, void *aux UNUSED)
     fixed_point_t decay_divisor = fp_add(fp_multiply(int_to_fp(2), load_avg_fp), 1);
     fixed_point_t decay = fp_divide(decay_dividend, decay_divisor);
     
-    // fixed_point_t nice_fp = int_to_fp(thread_get_nice());
     fixed_point_t nice_fp = int_to_fp(t->nice);
     /* A test gets stuck beyond this point */
     fixed_point_t calculated_recent_cpu_fp = fp_add(fp_multiply(decay, recent_cpu_fp), nice_fp);
@@ -420,6 +419,12 @@ void threads_recalculate_recent_cpu(struct thread *t, void *aux UNUSED)
     
     t->recent_cpu = calculated_recent_cpu;
   }
+}
+
+void thread_calculate_priority(struct thread *t, void *aux UNUSED) 
+{
+  /* Need thread pri calculation algorithm */
+  return;
 }
 
 /* Idle thread.  Executes when no other thread is ready to run.

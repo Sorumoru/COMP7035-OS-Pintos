@@ -328,7 +328,13 @@ void thread_foreach(thread_action_func *func, void *aux)
 /* Sets the current thread's priority to NEW_PRIORITY. */
 void thread_set_priority(int new_priority)
 {
-  thread_current()->priority = new_priority;
+  /**
+   * Added so that priority setting is disabled when using mlfqs - Jun
+   */
+  if (!thread_mlfqs)
+  {
+    thread_current()->priority = new_priority;
+  }
 }
 
 /* Returns the current thread's priority. */
@@ -386,8 +392,8 @@ int thread_get_recent_cpu(void)
   int calculated_recent_cpu = fp_to_int_round_nearest(calculated_recent_cpu_fp);
   */
 
-  //return calculated_recent_cpu;
-  // Luke's implementation
+  // return calculated_recent_cpu;
+  //  Luke's implementation
   fixed_point_t product = fp_multiply(thread_current()->recent_cpu, 100);
   return fp_to_int_round_nearest(product);
 }
@@ -397,31 +403,31 @@ void thread_increment_recent_cpu(void)
   thread_current()->recent_cpu = thread_get_recent_cpu() + 1;
 }
 
-void thread_update_recent_cpu(struct thread *t, void *aux UNUSED) 
+void thread_update_recent_cpu(struct thread *t, void *aux UNUSED)
 {
   if (strcmp(thread_name(), "idle") != 0) // if names are not equal
   {
-    
+
     int recent_cpu = t->recent_cpu;
     int load_avg = thread_get_load_avg();
-    
+
     fixed_point_t recent_cpu_fp = int_to_fp(recent_cpu);
     fixed_point_t load_avg_fp = int_to_fp(load_avg);
-    
+
     fixed_point_t decay_dividend = fp_multiply(int_to_fp(2), load_avg_fp);
     fixed_point_t decay_divisor = fp_add(fp_multiply(int_to_fp(2), load_avg_fp), 1);
     fixed_point_t decay = fp_divide(decay_dividend, decay_divisor);
-    
+
     fixed_point_t nice_fp = int_to_fp(t->nice);
     /* A test gets stuck beyond this point */
     fixed_point_t calculated_recent_cpu_fp = fp_add(fp_multiply(decay, recent_cpu_fp), nice_fp);
     int calculated_recent_cpu = fp_to_int_round_nearest(calculated_recent_cpu_fp);
-    
+
     t->recent_cpu = calculated_recent_cpu;
   }
 }
 
-void thread_calculate_priority(struct thread *t, void *aux UNUSED) 
+void thread_calculate_priority(struct thread *t, void *aux UNUSED)
 {
   /* Need thread pri calculation algorithm */
   return;

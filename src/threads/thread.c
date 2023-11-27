@@ -337,6 +337,10 @@ void thread_set_priority(int new_priority)
   {
     thread_current()->priority = new_priority;
   }
+  else
+  {
+    enum intr_level old_level;
+  }
 }
 
 /* Returns the current thread's priority. */
@@ -438,7 +442,7 @@ void thread_calculate_priority(struct thread *t, void *aux UNUSED)
   /* Need thread pri calculation algorithm */
   fixed_point_t recent_cpu = int_to_fp(t->recent_cpu);
   fixed_point_t nice = int_to_fp(t->nice);
-  
+
   fixed_point_t nice_product = fp_multiply(nice, int_to_fp(2));
   fixed_point_t recent_cpu_quotient = fp_divide(recent_cpu, int_to_fp(4));
 
@@ -446,7 +450,7 @@ void thread_calculate_priority(struct thread *t, void *aux UNUSED)
   t->priority = fp_to_int_round_nearest(priority_calculation);
 }
 
-void thread_calculate_load_avg(void) 
+void thread_calculate_load_avg(void)
 {
   fixed_point_t real_load_avg = int_to_fp(thread_get_load_avg());
 
@@ -460,7 +464,7 @@ void thread_calculate_load_avg(void)
   int ready_threads = 0;
   int ready_list_count = list_size(&ready_list);
 
-  //fixed_point_t y = fp_multiply(b, );
+  // fixed_point_t y = fp_multiply(b, );
 }
 
 /* Idle thread.  Executes when no other thread is ready to run.

@@ -1,5 +1,5 @@
-#ifndef THREADS_FIXED_POINT_H
-#define THREADS_FIXED_POINT_H
+// #ifndef THREADS_FIXED_POINT_H
+// #define THREADS_FIXED_POINT_H
 #include <stdint.h>
 
 typedef int32_t fixed_point_t;
@@ -63,4 +63,4 @@ fixed_point_t fp_divide(fixed_point_t x, fixed_point_t y)
   return ((int64_t)x) << FP_SHIFT / y;
 }
 
-#endif
+// #endif

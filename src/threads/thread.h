@@ -100,7 +100,7 @@ struct thread
   struct list_elem allelem; /* List element for all threads list. */
 
   /* A2 added props -Luke */
-  int nice;       /* Represents the willingness of a thread to give up CPU time -Luke */
+  int nice;      /* Represents the willingness of a thread to give up CPU time -Luke */
   fp recent_cpu; /* Represents how much of the CPU cycles the process has been using -Jun */
   int load_avg;
 
@@ -124,6 +124,8 @@ struct thread
    If true, use multi-level feedback queue scheduler.
    Controlled by kernel command-line option "-o mlfqs". */
 extern bool thread_mlfqs;
+
+int priority_advanced(struct thread *t);
 
 void put_thread_to_sleep(int64_t ticks); /* added for function prototyping -Jun */
 void thread_sleep(void);

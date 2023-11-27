@@ -23,7 +23,7 @@
    of thread.h for details. */
 #define THREAD_MAGIC 0xcd6abf4b
 
-int sys_load_avg;
+fp sys_load_avg;
 
 static struct list sleepy_list; /* List of sleeping thread elements to be awakened by wake_up_sleeping_threads -Jun */
 
@@ -342,7 +342,7 @@ void thread_set_priority(int new_priority)
   // {
   //   enum intr_level old_level = intr_disable();
   //   struct thread *current_thread = thread_current();
-  //   current_thread->original_priority = new_priority;
+  //   // current_thread->original_priority = new_priority;
   //   current_thread->priority = priority_advanced(current_thread);
   // }
 }
@@ -351,13 +351,13 @@ void thread_set_priority(int new_priority)
 int priority_advanced(struct thread *t)
 {
   // priority = PRI_MAX - (t->recent_cpu / 4) - (t->nice * 2);
-  fixed_point_t recent_cpu_fp_div_four = fp_divide(int_to_fp(t->recent_cpu), int_to_fp(4));
+  fp recent_cpu_fp_div_four = DIVIDE_FP(t->recent_cpu, CONVERT_TO_FP(4));
 
-  fixed_point_t nice_fp_div_two = fp_multiply(int_to_fp(t->nice), int_to_fp(2));
+  fp nice_fp_div_two = MULTIPLY_FP(CONVERT_TO_FP(t->nice), CONVERT_TO_FP(2));
 
-  fixed_point_t x = fp_subtract(recent_cpu_fp_div_four, nice_fp_div_two);
+  fp x = SUB_FP(recent_cpu_fp_div_four, nice_fp_div_two);
 
-  int priority = fp_to_int_round_nearest(fp_subtract(int_to_fp(PRI_MAX), x));
+  int priority = CONVERT_TO_INT_NEAREST(SUB_FP(CONVERT_TO_FP(PRI_MAX), x));
 
   if (priority > PRI_MAX)
     return PRI_MAX;
@@ -547,14 +547,15 @@ init_thread(struct thread *t, const char *name, int priority)
   strlcpy(t->name, name, sizeof t->name);
   t->stack = (uint8_t *)t + PGSIZE;
   // t->priority = priority;
-  if (thread_mlfqs)
-  {
-    t->priority = priority_advanced(t);
-  }
-  else
-  {
-    t->priority = priority;
-  }
+  t->priority = priority_advanced(t);
+  // if (thread_mlfqs)
+  // {
+  //   t->priority = priority_advanced(t);
+  // }
+  // else
+  // {
+  //   t->priority = priority;
+  // }
   sys_load_avg = 0;
   t->magic = THREAD_MAGIC;
   /* A2 additions - Luke */

@@ -164,29 +164,28 @@ timer_interrupt(struct intr_frame *args UNUSED)
 {
   // printf("timer_interrupt()\n");
   ticks++;
-  wake_up_sleeping_threads(ticks);
   thread_tick();
   // printf("hi\n");
   /* A2 Additions */
-  // if (strcmp(thread_name(), "idle") != 0) // if names are not equal
-  // {
-  //   thread_increment_recent_cpu();
-  // }
-  /* Need to recalculate for every running thread except idle */
-  // thread_foreach(thread_update_recent_cpu, 0);
+
+  // recalculate priority of all threads every 4th tick
+  if (timer_ticks() % 4 == 0)
+  {
+    thread_foreach(thread_calculate_priority, NULL);
+  }
+
+  if (strcmp(thread_name(), "idle") != 0) // if names are not equal
+  {
+    thread_increment_recent_cpu();
+  }
+
   if (timer_ticks() % TIMER_FREQ == 0)
   {
-    // put load average update here
     thread_calculate_load_avg();
-    // update recent cpu
-    thread_foreach(thread_update_recent_cpu, NULL);
-
-    // recalculate priority of all threads every 4th tick
-    if (timer_ticks() % 4 == 0)
-    {
-      thread_foreach(thread_calculate_priority, NULL);
-    }
+    thread_foreach(thread_update_recent_cpu, 0);
   }
+
+  wake_up_sleeping_threads(ticks);
 }
 
 /* Returns true if LOOPS iterations waits for more than one timer

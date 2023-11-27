@@ -29,6 +29,7 @@ typedef int tid_t;
 #define NICENESS_MIN -20   /* Lowest niceness */
 #define NICENESS_DEFAULT 0 /* Default niceness -Luke */
 #define NICENESS_MAX 20    /* Highest niceness */
+#define LOAD_AVG_DEFAULT 0 /* Inital value at system boot - Luke */
 
 /* A kernel thread or user process.
 
@@ -161,5 +162,7 @@ int thread_get_load_avg(void);
 void thread_increment_recent_cpu(void);
 void thread_update_recent_cpu(struct thread *t, void *aux);
 void thread_calculate_priority(struct thread *t, void *aux);
+void thread_calculate_load_avg(void);
+extern int sys_load_avg;
 
 #endif /* threads/thread.h */

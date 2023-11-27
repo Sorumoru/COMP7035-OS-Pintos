@@ -22,6 +22,8 @@
    of thread.h for details. */
 #define THREAD_MAGIC 0xcd6abf4b
 
+int sys_load_avg = LOAD_AVG_DEFAULT;
+
 static struct list sleepy_list; /* List of sleeping thread elements to be awakened by wake_up_sleeping_threads -Jun */
 
 /* List of processes in THREAD_READY state, that is, processes
@@ -359,7 +361,11 @@ int thread_get_nice(void)
 int thread_get_load_avg(void)
 {
   /* Not yet implemented. */
-  return 1;
+  fixed_point_t a = int_to_fp(sys_load_avg);
+  fixed_point_t b = int_to_fp(100);
+  fixed_point_t product = fp_multiply(a, b);
+
+  return fp_to_int_round_nearest(product);
 }
 
 /* Returns 100 times the current thread's recent_cpu value. */
@@ -425,6 +431,23 @@ void thread_calculate_priority(struct thread *t, void *aux UNUSED)
 {
   /* Need thread pri calculation algorithm */
   return;
+}
+
+void thread_calculate_load_avg(void) 
+{
+  fixed_point_t real_load_avg = int_to_fp(thread_get_load_avg());
+
+  fixed_point_t a = fp_divide(int_to_fp(59), int_to_fp(60));
+  fixed_point_t b = fp_divide(int_to_fp(1), int_to_fp(60));
+
+  fixed_point_t x = fp_multiply(a, real_load_avg);
+
+  /*Get # of threads in ready_list and thread in execution (except idle)*/
+
+  int ready_threads = 0;
+  int ready_list_count = list_size(&ready_list);
+
+  //fixed_point_t y = fp_multiply(b, );
 }
 
 /* Idle thread.  Executes when no other thread is ready to run.

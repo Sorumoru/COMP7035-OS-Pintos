@@ -6,6 +6,7 @@
 #include <stdint.h>
 
 #include "synch.h" /* Added this -Jun */
+#include "fixed.h"
 
 /* States in a thread's life cycle. */
 enum thread_status
@@ -99,7 +100,7 @@ struct thread
 
   /* A2 added props -Luke */
   int nice;       /* Represents the willingness of a thread to give up CPU time -Luke */
-  int recent_cpu; /* Represents how much of the CPU cycles the process has been using -Jun */
+  fp recent_cpu; /* Represents how much of the CPU cycles the process has been using -Jun */
   int load_avg;
 
   // struct semaphore sleep_sema; /* Sleep semaphore for timer_sleep and timer_interrupt, no implementation yet :( -Jun */
@@ -156,13 +157,13 @@ void thread_set_priority(int);
 
 int thread_get_nice(void);
 void thread_set_nice(int);
-int thread_get_recent_cpu(void);
-int thread_get_load_avg(void);
+fp thread_get_recent_cpu(void);
+fp thread_get_load_avg(void);
 /* A2 Additions */
 void thread_increment_recent_cpu(void);
 void thread_update_recent_cpu(struct thread *t, void *aux);
 void thread_calculate_priority(struct thread *t, void *aux);
 void thread_calculate_load_avg(void);
-extern int sys_load_avg;
+extern fp sys_load_avg;
 
 #endif /* threads/thread.h */

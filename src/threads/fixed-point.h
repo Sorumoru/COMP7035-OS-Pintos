@@ -32,9 +32,9 @@ int fp_to_int_round_nearest(fixed_point_t x)
   // else
   //   return (x - (1 << (FP_SHIFT - 1))) >> FP_SHIFT;
   if (x >= 0)
-    (x + (FP_LIMIT / 2)) / FP_LIMIT;
+    return (x + (FP_LIMIT / 2)) / FP_LIMIT;
   else
-    (x - (FP_LIMIT / 2)) / FP_LIMIT;
+    return (x - (FP_LIMIT / 2)) / FP_LIMIT;
 }
 
 // Addition of fixed-point numbers.
@@ -53,14 +53,14 @@ fixed_point_t fp_subtract(fixed_point_t x, fixed_point_t y)
 fixed_point_t fp_multiply(fixed_point_t x, fixed_point_t y)
 {
   // return ((int64_t)x * y) >> FP_SHIFT;
-  return (((int64_t)x) * y) / FP_LIMIT;
+  return ((int64_t)x) * y >> FP_SHIFT;
 }
 
 // Division of fixed-point numbers.
 fixed_point_t fp_divide(fixed_point_t x, fixed_point_t y)
 {
   // return ((int64_t)x << FP_SHIFT) / y;
-  return (((int64_t)x) * FP_LIMIT) / y;
+  return ((int64_t)x) << FP_SHIFT / y;
 }
 
 #endif

@@ -12,7 +12,8 @@
 #include "threads/synch.h"
 #include "threads/vaddr.h"
 #include "devices/timer.h" /* Added this for timer_ticks() -Jun */
-#include "fixed-point.h"   /* Added for arithmetic calculations -Jun */
+//#include "fixed-point.h"   /* Added for arithmetic calculations -Jun */
+#include "fixed.h"
 #ifdef USERPROG
 #include "userprog/process.h"
 #endif
@@ -364,109 +365,72 @@ int thread_get_nice(void)
 }
 
 /* Returns 100 times the system load average. */
-int thread_get_load_avg(void)
+fp thread_get_load_avg(void)
 {
-  /* Not yet implemented. */
-  fixed_point_t a = int_to_fp(sys_load_avg);
-  fixed_point_t b = int_to_fp(100);
-  fixed_point_t product = fp_multiply(a, b);
-
-  return fp_to_int_round_nearest(product);
+  return MULTIPLY_INTEGER(sys_load_avg, 100);
 }
 
 /* Returns 100 times the current thread's recent_cpu value. */
-int thread_get_recent_cpu(void)
+fp thread_get_recent_cpu(void)
 {
-  /*
-  int recent_cpu = thread_current()->recent_cpu;
-  int load_avg = thread_current()->load_avg;
-
-  fixed_point_t recent_cpu_fp = int_to_fp(recent_cpu);
-  fixed_point_t load_avg_fp = int_to_fp(load_avg);
-  */
-  /**
-   * recent_cpu = (2 * load_avg) / (2 * load_avg + 1) * recent_cpu + nice
-   * decay = (2 * load_avg) / (2 * load_avg + 1)
-   * */
-  /*
-  fixed_point_t decay_dividend = fp_multiply(int_to_fp(2), load_avg_fp);
-  fixed_point_t decay_divisor = fp_add(fp_multiply(int_to_fp(2), load_avg_fp), 1);
-  fixed_point_t decay = fp_divide(decay_dividend, decay_divisor);
-
-  fixed_point_t nice_fp = int_to_fp(thread_get_nice());
-  fixed_point_t calculated_recent_cpu_fp = fp_add(fp_multiply(decay, recent_cpu_fp), nice_fp);
-  int calculated_recent_cpu = fp_to_int_round_nearest(calculated_recent_cpu_fp);
-  */
-
-  // return calculated_recent_cpu;
-  //  Luke's implementation
-  fixed_point_t product = fp_multiply(thread_current()->recent_cpu, 100);
-  return fp_to_int_round_nearest(product);
+  return MULTIPLY_INTEGER(thread_current()->recent_cpu, 100);
 }
 
 void thread_increment_recent_cpu(void)
 {
-  thread_current()->recent_cpu = thread_get_recent_cpu() + 1;
+  thread_current()->recent_cpu = ADD_INTEGER(thread_get_recent_cpu(), 1);
 }
 
 void thread_update_recent_cpu(struct thread *t, void *aux UNUSED)
 {
   if (strcmp(thread_name(), "idle") != 0) // if names are not equal
   {
+    fp recent_cpu_fp = t->recent_cpu;
+    fp load_avg_fp = thread_get_load_avg();
 
-    int recent_cpu = t->recent_cpu;
-    int load_avg = thread_get_load_avg();
+    fp decay_dividend = MULTIPLY_INTEGER(load_avg_fp, 2);
+    fp decay_divisor = ADD_INTEGER(decay_dividend, 1);
+    fp decay = DIVIDE_FP(decay_dividend, decay_divisor);
 
-    fixed_point_t recent_cpu_fp = int_to_fp(recent_cpu);
-    fixed_point_t load_avg_fp = int_to_fp(load_avg);
+    fp nice_fp = CONVERT_TO_FP(t->nice);
+    fp recent_cpu_result = ADD_FP(MULTIPLY_FP(decay, recent_cpu_fp), nice_fp);
 
-    fixed_point_t decay_dividend = fp_multiply(int_to_fp(2), load_avg_fp);
-    fixed_point_t decay_divisor = fp_add(fp_multiply(int_to_fp(2), load_avg_fp), 1);
-    fixed_point_t decay = fp_divide(decay_dividend, decay_divisor);
-
-    fixed_point_t nice_fp = int_to_fp(t->nice);
-    /* A test gets stuck beyond this point */
-    fixed_point_t calculated_recent_cpu_fp = fp_add(fp_multiply(decay, recent_cpu_fp), nice_fp);
-    int calculated_recent_cpu = fp_to_int_round_nearest(calculated_recent_cpu_fp);
-
-    t->recent_cpu = calculated_recent_cpu;
+    t->recent_cpu = recent_cpu_result;
   }
 }
 
 void thread_calculate_priority(struct thread *t, void *aux UNUSED)
 {
-  /* Need thread pri calculation algorithm */
-  fixed_point_t recent_cpu = int_to_fp(t->recent_cpu);
-  fixed_point_t nice = int_to_fp(t->nice);
+  fp recent_cpu = t->recent_cpu;
+  fp nice = CONVERT_TO_FP(t->nice);
   
-  fixed_point_t nice_product = fp_multiply(nice, int_to_fp(2));
-  fixed_point_t recent_cpu_quotient = fp_divide(recent_cpu, int_to_fp(4));
+  fp nice_product = MULTIPLY_INTEGER(nice, 2);
+  fp recent_cpu_quotient = DIVIDE_INTEGER(recent_cpu, 4);
 
-  fixed_point_t priority_calculation = fp_subtract(PRI_MAX, fp_subtract(recent_cpu_quotient, nice_product));
-  t->priority = fp_to_int_round_nearest(priority_calculation);
+  fp max = CONVERT_TO_FP(PRI_MAX);
+  fp co = SUB_FP(recent_cpu_quotient, nice_product);
+  fp priority_calc = SUB_FP(max, co);
+  t->priority = priority_calc;
 }
 
-void thread_calculate_load_avg(void) 
+void thread_calculate_load_avg(void)
 {
-  fixed_point_t real_load_avg = int_to_fp(thread_get_load_avg());
+  fp real_load_avg = thread_get_load_avg();
 
-  fixed_point_t a = fp_divide(int_to_fp(59), int_to_fp(60));
-  fixed_point_t b = fp_divide(int_to_fp(1), int_to_fp(60));
+  fp a = DIVIDE_FP(CONVERT_TO_FP(59), CONVERT_TO_FP(60));
+  fp b = DIVIDE_FP(CONVERT_TO_FP(1), CONVERT_TO_FP(60));
 
-  fixed_point_t x = fp_multiply(a, real_load_avg);
+  fp x = MULTIPLY_FP(a, real_load_avg);
 
-  /*Get # of threads in ready_list and thread in execution (except idle)*/
-
-  int ready_threads = 0;
-  int ready_list_count = list_size(&ready_list);
+  int ready_threads = list_size(&ready_list) + 1;
 
   if (idle_thread->status == THREAD_RUNNING || idle_thread->status == THREAD_READY) {
     --ready_threads;
   }
 
-  fixed_point_t y = fp_multiply(b, int_to_fp(ready_threads));
-  fixed_point_t result = fp_add(x, y);
-  sys_load_avg = fp_to_int_round_nearest(result);
+  fp y = MULTIPLY_INTEGER(b, ready_threads);
+  fp result = ADD_FP(x, y);
+  sys_load_avg = result;
 }
 
 /* Idle thread.  Executes when no other thread is ready to run.

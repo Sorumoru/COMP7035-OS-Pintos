@@ -168,13 +168,26 @@ timer_interrupt(struct intr_frame *args UNUSED)
   thread_tick();
   
   /* A2 Additions */
+  /*
+  // recalculate priority of all threads every 4th tick
+  if (timer_ticks() % 4 == 0)
+  {
+    thread_foreach(thread_calculate_priority, NULL);
+  }*/
+  
   if (strcmp(thread_name(), "idle") != 0) // if names are not equal
   {
     thread_increment_recent_cpu();
   }
-  /* Need to recalculate for every running thread except idle */
-  thread_foreach(thread_update_recent_cpu, 0);
-  
+
+  if (timer_ticks() % TIMER_FREQ == 0) {
+    thread_calculate_load_avg();
+
+    /* Need to recalculate for every running thread except idle */
+    thread_foreach(thread_update_recent_cpu, 0);
+
+    
+  }
 }
 
 /* Returns true if LOOPS iterations waits for more than one timer

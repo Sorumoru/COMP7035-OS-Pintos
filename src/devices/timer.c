@@ -166,7 +166,7 @@ timer_interrupt(struct intr_frame *args UNUSED)
   ticks++;
   wake_up_sleeping_threads(ticks);
   thread_tick();
-
+  // printf("hi\n");
   /* A2 Additions */
   // if (strcmp(thread_name(), "idle") != 0) // if names are not equal
   // {

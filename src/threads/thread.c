@@ -337,13 +337,13 @@ void thread_set_priority(int new_priority)
   {
     thread_current()->priority = new_priority;
   }
-  else
-  {
-    enum intr_level old_level = intr_disable();
-    struct thread *current_thread = thread_current();
-    current_thread->original_priority = new_priority;
-    current_thread->priority = priority_advanced(current_thread);
-  }
+  // else
+  // {
+  //   enum intr_level old_level = intr_disable();
+  //   struct thread *current_thread = thread_current();
+  //   current_thread->original_priority = new_priority;
+  //   current_thread->priority = priority_advanced(current_thread);
+  // }
 }
 
 /* Implementation of an advanced scheduler -Jun */
@@ -575,7 +575,15 @@ init_thread(struct thread *t, const char *name, int priority)
   t->status = THREAD_BLOCKED;
   strlcpy(t->name, name, sizeof t->name);
   t->stack = (uint8_t *)t + PGSIZE;
-  t->priority = priority;
+  // t->priority = priority;
+  if (thread_mlfqs)
+  {
+    t->priority = priority_advanced(t);
+  }
+  else
+  {
+    t->priority = priority;
+  }
   t->magic = THREAD_MAGIC;
   /* A2 additions - Luke */
   t->nice = NICENESS_DEFAULT;

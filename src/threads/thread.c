@@ -22,7 +22,7 @@
    of thread.h for details. */
 #define THREAD_MAGIC 0xcd6abf4b
 
-int sys_load_avg = LOAD_AVG_DEFAULT;
+int sys_load_avg;
 
 static struct list sleepy_list; /* List of sleeping thread elements to be awakened by wake_up_sleeping_threads -Jun */
 
@@ -404,27 +404,6 @@ int thread_get_load_avg(void)
 /* Returns 100 times the current thread's recent_cpu value. */
 int thread_get_recent_cpu(void)
 {
-  /*
-  int recent_cpu = thread_current()->recent_cpu;
-  int load_avg = thread_current()->load_avg;
-
-  fixed_point_t recent_cpu_fp = int_to_fp(recent_cpu);
-  fixed_point_t load_avg_fp = int_to_fp(load_avg);
-  */
-  /**
-   * recent_cpu = (2 * load_avg) / (2 * load_avg + 1) * recent_cpu + nice
-   * decay = (2 * load_avg) / (2 * load_avg + 1)
-   * */
-  /*
-  fixed_point_t decay_dividend = fp_multiply(int_to_fp(2), load_avg_fp);
-  fixed_point_t decay_divisor = fp_add(fp_multiply(int_to_fp(2), load_avg_fp), 1);
-  fixed_point_t decay = fp_divide(decay_dividend, decay_divisor);
-
-  fixed_point_t nice_fp = int_to_fp(thread_get_nice());
-  fixed_point_t calculated_recent_cpu_fp = fp_add(fp_multiply(decay, recent_cpu_fp), nice_fp);
-  int calculated_recent_cpu = fp_to_int_round_nearest(calculated_recent_cpu_fp);
-  */
-
   // return calculated_recent_cpu;
   //  Luke's implementation
   fixed_point_t product = fp_multiply(thread_current()->recent_cpu, 100);
@@ -469,25 +448,29 @@ void thread_calculate_priority(struct thread *t, void *aux UNUSED)
   fixed_point_t nice_product = fp_multiply(nice, int_to_fp(2));
   fixed_point_t recent_cpu_quotient = fp_divide(recent_cpu, int_to_fp(4));
 
-  fixed_point_t priority_calculation = fp_subtract(PRI_MAX, fp_subtract(recent_cpu_quotient, nice_product));
+  fixed_point_t priority_calculation = fp_subtract(int_to_fp(PRI_MAX), fp_subtract(recent_cpu_quotient, nice_product));
   t->priority = fp_to_int_round_nearest(priority_calculation);
 }
 
+// bananaman
 void thread_calculate_load_avg(void)
 {
-  fixed_point_t real_load_avg = int_to_fp(thread_get_load_avg());
+  // Formula for load_avg: load_avg = (59/60) * load_avg + (1/60) * ready_threads
+
+  // Get # of threads in ready_list and thread in execution (except idle)
+  int ready_list_count = list_size(&ready_list);
+
+  // fixed_point_t real_load_avg = int_to_fp(thread_get_load_avg());
+  fixed_point_t real_load_avg = int_to_fp(sys_load_avg);
 
   fixed_point_t a = fp_divide(int_to_fp(59), int_to_fp(60));
   fixed_point_t b = fp_divide(int_to_fp(1), int_to_fp(60));
 
   fixed_point_t x = fp_multiply(a, real_load_avg);
+  fixed_point_t y = fp_multiply(b, ready_list_count);
 
-  /*Get # of threads in ready_list and thread in execution (except idle)*/
-
-  int ready_threads = 0;
-  int ready_list_count = list_size(&ready_list);
-
-  // fixed_point_t y = fp_multiply(b, );
+  fixed_point_t temp = fp_add(x, y);
+  sys_load_avg = fp_to_int_round_nearest(temp);
 }
 
 /* Idle thread.  Executes when no other thread is ready to run.
@@ -584,6 +567,7 @@ init_thread(struct thread *t, const char *name, int priority)
   {
     t->priority = priority;
   }
+  sys_load_avg = 0;
   t->magic = THREAD_MAGIC;
   /* A2 additions - Luke */
   t->nice = NICENESS_DEFAULT;

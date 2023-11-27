@@ -177,7 +177,7 @@ timer_interrupt(struct intr_frame *args UNUSED)
   if (timer_ticks() % TIMER_FREQ == 0)
   {
     // put load average update here
-
+    thread_calculate_load_avg();
     // update recent cpu
     thread_foreach(thread_update_recent_cpu, NULL);
 

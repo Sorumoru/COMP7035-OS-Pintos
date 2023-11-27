@@ -430,7 +430,14 @@ void thread_update_recent_cpu(struct thread *t, void *aux UNUSED)
 void thread_calculate_priority(struct thread *t, void *aux UNUSED) 
 {
   /* Need thread pri calculation algorithm */
-  return;
+  fixed_point_t recent_cpu = int_to_fp(t->recent_cpu);
+  fixed_point_t nice = int_to_fp(t->nice);
+  
+  fixed_point_t nice_product = fp_multiply(nice, int_to_fp(2));
+  fixed_point_t recent_cpu_quotient = fp_divide(recent_cpu, int_to_fp(4));
+
+  fixed_point_t priority_calculation = fp_subtract(PRI_MAX, fp_subtract(recent_cpu_quotient, nice_product));
+  t->priority = fp_to_int_round_nearest(priority_calculation);
 }
 
 void thread_calculate_load_avg(void) 

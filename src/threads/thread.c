@@ -460,7 +460,13 @@ void thread_calculate_load_avg(void)
   int ready_threads = 0;
   int ready_list_count = list_size(&ready_list);
 
-  //fixed_point_t y = fp_multiply(b, );
+  if (idle_thread->status == THREAD_RUNNING || idle_thread->status == THREAD_READY) {
+    --ready_threads;
+  }
+
+  fixed_point_t y = fp_multiply(b, int_to_fp(ready_threads));
+  fixed_point_t result = fp_add(x, y);
+  sys_load_avg = fp_to_int_round_nearest(result);
 }
 
 /* Idle thread.  Executes when no other thread is ready to run.

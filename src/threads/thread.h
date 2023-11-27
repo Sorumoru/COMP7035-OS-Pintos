@@ -95,7 +95,8 @@ struct thread
   char name[16];             /* Name (for debugging purposes). */
   uint8_t *stack;            /* Saved stack pointer. */
   int priority;              /* Priority. */
-  struct list_elem allelem;  /* List element for all threads list. */
+  int original_priority;
+  struct list_elem allelem; /* List element for all threads list. */
 
   /* A2 added props -Luke */
   int nice;       /* Represents the willingness of a thread to give up CPU time -Luke */

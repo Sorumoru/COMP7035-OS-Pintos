@@ -339,8 +339,31 @@ void thread_set_priority(int new_priority)
   }
   else
   {
-    enum intr_level old_level;
+    enum intr_level old_level = intr_disable();
+    struct thread *current_thread = thread_current();
+    current_thread->original_priority = new_priority;
+    current_thread->priority = priority_advanced(current_thread);
   }
+}
+
+/* Implementation of an advanced scheduler -Jun */
+int priority_advanced(struct thread *t)
+{
+  // priority = PRI_MAX - (t->recent_cpu / 4) - (t->nice * 2);
+  fixed_point_t recent_cpu_fp_div_four = fp_divide(int_to_fp(t->recent_cpu), int_to_fp(4));
+
+  fixed_point_t nice_fp_div_two = fp_multiply(int_to_fp(t->nice), int_to_fp(2));
+
+  fixed_point_t x = fp_subtract(recent_cpu_fp_div_four, nice_fp_div_two);
+
+  int priority = fp_to_int_round_nearest(fp_subtract(int_to_fp(PRI_MAX), x));
+
+  if (priority > PRI_MAX)
+    return PRI_MAX;
+  else if (priority < PRI_MIN)
+    return PRI_MIN;
+  else
+    return priority;
 }
 
 /* Returns the current thread's priority. */
